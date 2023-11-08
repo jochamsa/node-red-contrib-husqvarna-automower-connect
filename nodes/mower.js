@@ -18,19 +18,16 @@ module.exports = (RED) => {
           };
           node.status(disconnectedState);
 
-          node.connect = async () => {
-            try {
-              // Connect to mower
-              node.mowerConnection = new AutoMowerConnection({
-                apiKey: node.credentials.apikey,
-                clientSecret: node.credentials.clientsecret,
-              });
+          try {
+            // Connect to mower
+            node.mowerConnection = new AutoMowerConnection({
+              apiKey: node.credentials.apikey,
+              clientSecret: node.credentials.clientsecret,
+            });
 
-              // Get mower
-              node.autoMower = await node.mowerConnection.getMower(config.mower);
-
-              // Start receiving events
-              await node.mowerConnection.activateRealtimeUpdates();
+            // Get mower
+            node.mowerConnection.getMower(config.mower).then((mower) => {
+              node.autoMower = mower;
 
               node.autoMower.on("wsUpdate", (updateList) => {
                 let fill = "grey";
@@ -111,40 +108,43 @@ module.exports = (RED) => {
                   shape,
                   text,
                 });
+              })
 
-                // Send message with updated values
-                node.send({
-                  mower: {
-                    id: node.autoMower.id,
-                    name: node.autoMower.data.system.name,
-                  },
-                  payload: {
-                    connected: node.autoMower.isConnected,
-                    batteryPercent: node.autoMower.batteryPercent,
-                    state: node.autoMower.state,
-                    stateTs: node.autoMower.statusTimestamp
-                      ? node.autoMower.statusTimestamp.toDate()
-                      : undefined,
-                    nextStartTs: node.autoMower.nextStartTimestamp
-                      ? node.autoMower.nextStartTimestamp.toDate()
-                      : undefined,
-                    mode: node.autoMower.mode,
-                    activity: node.autoMower.activity,
-                    errorCode: node.autoMower.errorCode,
-                    errorCodeTs: node.autoMower.errorCodeTimestamp
-                      ? node.autoMower.errorCodeTimestamp.toDate()
-                      : undefined,
-                    overrideAction: node.autoMower.overrideAction,
-                    restrictedReason: node.autoMower.restrictedReason,
-                  },
-                  updatesList: updateList,
-                });
+              // Start receiving events
+              node.mowerConnection.activateRealtimeUpdates();
+
+              // Send message with updated values
+              node.send({
+                mower: {
+                  id: node.autoMower.id,
+                  name: node.autoMower.data.system.name,
+                },
+                payload: {
+                  connected: node.autoMower.isConnected,
+                  batteryPercent: node.autoMower.batteryPercent,
+                  state: node.autoMower.state,
+                  stateTs: node.autoMower.statusTimestamp
+                    ? node.autoMower.statusTimestamp.toDate()
+                    : undefined,
+                  nextStartTs: node.autoMower.nextStartTimestamp
+                    ? node.autoMower.nextStartTimestamp.toDate()
+                    : undefined,
+                  mode: node.autoMower.mode,
+                  activity: node.autoMower.activity,
+                  errorCode: node.autoMower.errorCode,
+                  errorCodeTs: node.autoMower.errorCodeTimestamp
+                    ? node.autoMower.errorCodeTimestamp.toDate()
+                    : undefined,
+                  overrideAction: node.autoMower.overrideAction,
+                  restrictedReason: node.autoMower.restrictedReason,
+                },
+                updatesList: updateList,
               });
+            });
 
-            } catch (e) {
-              // todo: handle
-            }
-          };
+          } catch (e) {
+            // todo: handle
+          }
 
           // On input message received
           node.on("input", async (msg) => {

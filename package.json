@@ -2,7 +2,7 @@
   "license": "MIT",
   "name": "@diidum/node-red-contrib-husqvarna-automower-connect",
   "description": "Node for controlling/monitoring Husqvarna mowers",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": {
     "name": "Sascha Jocham",
     "url": "https://github.com/jochamsa/node-red-contrib-husqvarna-automower-connect"
@@ -23,6 +23,7 @@
   },
   "keywords": [
     "husqvarna",
+    "node-red",
     "automower-connect",
     "mower",
     "lawn mower"
