@@ -60,6 +60,6 @@ You can command the mower by sending a message with:
 
 ## Example flow
 
-![Alt text](HusqvarnaDemoFlow.png)
+![AutomowerDemoFlow](AutomowerDemoFlow.png)
 
-https://developer.husqvarnagroup.cloud/apis/gardena-smart-system-api/blob/efcb5789b564cce2cb0d9e4ca6d703a3180b9778/demoflow.json#L1-L135
+https://github.com/jochamsa/node-red-contrib-husqvarna-automower-connect/blob/main/examples/AutomowerDemoFlow.json
