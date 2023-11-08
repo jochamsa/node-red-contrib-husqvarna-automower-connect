@@ -18,16 +18,19 @@ module.exports = (RED) => {
           };
           node.status(disconnectedState);
 
-          try {
-            // Connect to mower
-            node.mowerConnection = new AutoMowerConnection({
-              apiKey: node.credentials.apikey,
-              clientSecret: node.credentials.clientsecret,
-            });
+          node.connect = async () => {
+            try {
+              // Connect to mower
+              node.mowerConnection = new AutoMowerConnection({
+                apiKey: node.credentials.apikey,
+                clientSecret: node.credentials.clientsecret,
+              });
 
-            // Get mower
-            node.mowerConnection.getMower(config.mower).then((mower) => {
-              node.autoMower = mower;
+              // Get mower
+              node.autoMower = await node.mowerConnection.getMower(config.mower);
+
+              // Start receiving events
+              await node.mowerConnection.activateRealtimeUpdates();
 
               node.autoMower.on("wsUpdate", (updateList) => {
                 let fill = "grey";
@@ -68,11 +71,14 @@ module.exports = (RED) => {
                 // Determine status
                 switch (node.autoMower.state) {
                   case MowerState.IN_OPERATION:
-                  case MowerState.PAUSED:
                   case MowerState.Stopped:
                   case MowerState.NOT_APPLICABLE:
                     fill = "green";
                     text = activityStatus();
+                    break;
+                  case MowerState.PAUSED:
+                    fill = "green";
+                    text = `Pause | ${batteryStatus()}`;
                     break;
                   case MowerState.OFF:
                     fill = "yellow";
@@ -108,43 +114,40 @@ module.exports = (RED) => {
                   shape,
                   text,
                 });
-              })
 
-              // Start receiving events
-              node.mowerConnection.activateRealtimeUpdates();
-
-              // Send message with updated values
-              node.send({
-                mower: {
-                  id: node.autoMower.id,
-                  name: node.autoMower.data.system.name,
-                },
-                payload: {
-                  connected: node.autoMower.isConnected,
-                  batteryPercent: node.autoMower.batteryPercent,
-                  state: node.autoMower.state,
-                  stateTs: node.autoMower.statusTimestamp
-                    ? node.autoMower.statusTimestamp.toDate()
-                    : undefined,
-                  nextStartTs: node.autoMower.nextStartTimestamp
-                    ? node.autoMower.nextStartTimestamp.toDate()
-                    : undefined,
-                  mode: node.autoMower.mode,
-                  activity: node.autoMower.activity,
-                  errorCode: node.autoMower.errorCode,
-                  errorCodeTs: node.autoMower.errorCodeTimestamp
-                    ? node.autoMower.errorCodeTimestamp.toDate()
-                    : undefined,
-                  overrideAction: node.autoMower.overrideAction,
-                  restrictedReason: node.autoMower.restrictedReason,
-                },
-                updatesList: updateList,
+                // Send message with updated values
+                node.send({
+                  mower: {
+                    id: node.autoMower.id,
+                    name: node.autoMower.data.system.name,
+                  },
+                  payload: {
+                    connected: node.autoMower.isConnected,
+                    batteryPercent: node.autoMower.batteryPercent,
+                    state: node.autoMower.state,
+                    stateTs: node.autoMower.statusTimestamp
+                      ? node.autoMower.statusTimestamp.toDate()
+                      : undefined,
+                    nextStartTs: node.autoMower.nextStartTimestamp
+                      ? node.autoMower.nextStartTimestamp.toDate()
+                      : undefined,
+                    mode: node.autoMower.mode,
+                    activity: node.autoMower.activity,
+                    errorCode: node.autoMower.errorCode,
+                    errorCodeTs: node.autoMower.errorCodeTimestamp
+                      ? node.autoMower.errorCodeTimestamp.toDate()
+                      : undefined,
+                    overrideAction: node.autoMower.overrideAction,
+                    restrictedReason: node.autoMower.restrictedReason,
+                  },
+                  updatesList: updateList,
+                });
               });
-            });
 
-          } catch (e) {
-            // todo: handle
-          }
+            } catch (e) {
+              // todo: handle
+            }
+          };
 
           // On input message received
           node.on("input", async (msg) => {
@@ -152,7 +155,7 @@ module.exports = (RED) => {
               if (node.autoMower) {
                 switch (msg.action) {
                   case "pauseMower":
-                    await node.autoMower.pauseMower()
+                    await node.autoMower.pauseMower();
                     break;
                   case "parkUntilNextSchedule":
                     await node.autoMower.parkUntilNextSchedule();
@@ -167,7 +170,7 @@ module.exports = (RED) => {
                     if (msg.duration && parkDuration) {
                       parkMin = parkDuration;
                     }
-                    await node.autoMower.parkForDurationOfTime();
+                    await node.autoMower.parkForDurationOfTime(parkMin);
                     break;
                   case "resumeSchedule":
                     await node.autoMower.resumeSchedule();
@@ -186,6 +189,7 @@ module.exports = (RED) => {
                 }
               }
             } catch (e) {
+              console.log(e);
             }
           });
 
