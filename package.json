@@ -1,0 +1,36 @@
+{
+  "license": "MIT",
+  "name": "@jochamsa/node-red-contrib-husqvarna-automower-connect",
+  "description": "Node for controlling/monitoring Husqvarna mowers",
+  "version": "0.0.1",
+  "author": {
+    "name": "Sascha Jocham",
+    "url": "https://github.com/jochamsa/node-red-contrib-husqvarna-automower-connect"
+  },
+  "node-red": {
+    "version": ">=2.2.0",
+    "nodes": {
+      "automower": "nodes/mower.js"
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/jochamsa/node-red-contrib-husqvarna-automower-connect/issues"
+  },
+  "homepage": "https://github.com/jochamsa/node-red-contrib-husqvarna-automower-connect",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jochamsa/node-red-contrib-husqvarna-automower-connect.git"
+  },
+  "keywords": [
+    "husqvarna",
+    "automower-connect",
+    "mower",
+    "lawn mower"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "automower-connect": "^0.0.5"
+  }
+}

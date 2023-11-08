@@ -1,0 +1,223 @@
+<script type="text/html" data-template-name="auto-mower">
+  <<div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-apikey"
+      ><i class="fa fa-id-badge"></i> API Key</label
+    >
+    <input
+      type="text"
+      id="node-input-apikey"
+      placeholder="API Key"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-clientsecret"
+      ><i class="fa fa-key"></i> Client Secret</label
+    >
+    <input
+      type="text"
+      id="node-input-clientsecret"
+      placeholder="Client Secret"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-mower"
+      ><i class="fa fa-map-marker"></i> Mower</label
+    >
+    <div style="width: 70%; display: inline-flex">
+      <select id="node-input-mower" disabled style="flex-grow: 1">
+        <!-- <option value="id">name</option> -->
+      </select>
+      <button
+        id="node-mower-scan"
+        style="margin-left: 10px"
+        class="red-ui-button"
+      >
+        <i class="fa fa-search"></i>
+      </button>
+    </div>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="auto-mower">
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt class="required">Name <span class="property-type">string</span></dt>
+    <dd>Choose any name to identify your node</dd>
+    <dt class="required">APP Key <span class="property-type">string</span></dt>
+    <dd>Fill in the Application Key which can be obtained from the Husqvarna developer portal</dd>
+    <dt class="required">Client Secret <span class="property-type">string</span></dt>
+    <dd>Fill in the Client Secret which can be obtained from the Husqvarna developer portal</dd>
+    <dt class="required">Mower <span class="property-type">select</span></dt>
+    <dd>Select the appropriate mower</dd>
+  </dl>
+  <h3>Mower update events</h3>
+  <p>
+    When a status update is available for the Husqvarna mower, a new
+    message is sent:
+  </p>
+  <ul>
+    <li>msg.mower: id & name of the mower</li>
+    <li>
+      msg.payload: latest values of all attributes
+      <ul>
+        <li>connected</li>
+        <li>batteryPercent</li>
+        <li>state</li>
+        <li>stateTs</li>
+        <li>nextStartTs</li>
+        <li>mode</li>
+        <li>activity</li>
+        <li>errorCode</li>
+        <li>errorCodeTs</li>
+        <li>overrideAction,</li>
+        <li>restrictedReason</li>
+      </ul>
+    </li>
+    <li>msg.updatesList: list of attributes which have been updated</li>
+  </ul>
+  <h3>Commanding the mower</h3>
+  <p>You can command the mower by sending a message with:</p>
+  <ul>
+    <li>
+      msg.action:
+      <ul>
+        <li>parkUntilNextSchedule</li>
+        <li>parkUntilFurtherNotice</li>
+        <li>parkForDurationOfTime</li>
+        <li>resumeSchedule</li>
+        <li>startMowing</li>
+      </ul>
+    </li>
+    <li>
+      msg.duration: Duration in minutes (Optional for 'startMowing' and Required for'parkForDurationOfTime' action)
+    </li>
+  </ul>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('auto-mower', {
+    category: 'Husqvarna',
+    paletteLabel: "Husqvarna Mower",
+    color: '#a6bbcf',
+    defaults: {
+      name: { value: "Mower" },
+      mower: {
+        required: true,
+        validate: (v) => {
+          return typeof v === "string" && v.length > 0;
+        },
+      },
+    },
+    credentials: {
+      apikey: { type: "text" },
+      clientsecret: { type: "text" }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "Husqvarna.svg",
+    label: function () {
+      return this.name || "lMower";
+    },
+    oneditprepare: function () {
+      // Function to retrieve mowers
+      const populateMowers = (apikey, clientsecret, selectedValue) => {
+        // Lock UI
+        $("#node-input-mower").prop("disabled", true);
+        $("#node-mower-scan")
+          .prop("disabled", true)
+          .html(`<i class="fa fa-spinner fa-spin"></i>`);
+
+        // Get mowers
+        $.getJSON("automower-connection/get-mowers", {
+          apikey: $("#node-input-apikey").val(),
+          clientsecret: $("#node-input-clientsecret").val(),
+        })
+          .done((mowers) => {
+            // Error?
+            if (mowers.length === 0) {
+              RED.notify(`No mowers found`, "error");
+            } else {
+              // Replace options in select
+              $("#node-input-mower").replaceWith(
+                `<select id="node-input-mower" style="width: 100%;"></select>`
+              );
+              mowers.forEach((mower) => {
+                $("#node-input-mower").append(
+                  `<option value="${mower.id}" data-id="${mower.id}">${mower.name}</option>`
+                );
+                RED.notify(`${$("#node-input-mower").val()}`);
+              });
+
+              // Select provided value
+              if (selectedValue) {
+                $("#node-input-mower").val(selectedValue);
+              }
+              // Select first if only 1 returned
+              else if (mowers.length === 1) {
+                $("#node-input-mower").val(mowers[0].id);
+              }
+
+              // Enable select & hide search button
+              $("#node-input-mower").prop("disabled", false);
+              //$("#node-mower-scan").hide();
+            }
+          })
+          .fail((jqxhr, textStatus, error) => {
+            if (jqxhr.status == 401) {
+              RED.notify(`Wrong Husqvarna credentials`, { type: "error" });
+            } else {
+              RED.notify(`Failed retrieving Husqvarna mowers`, {
+                type: "error",
+              });
+            }
+          })
+          .always(() => {
+            // Unlock UI
+            $("#node-mower-scan").prop("disabled", false).html(`<i class="fa fa-search"></i>`);
+          });
+      };
+
+      // Get mowers on edit of existing config
+      if (
+        this.mower &&
+        this.credentials.apikey &&
+        this.credentials.clientsecret
+      ) {
+        populateMowers(
+          this.credentials.apikey,
+          this.credentials.clientsecret,
+          this.mower
+        );
+      }
+
+      // Get mowers when scan button clicked
+      $("#node-mower-scan").click(() => {
+        if (!$("#node-mower-scan").prop("disabled")) {
+          RED.notify(`Scanning for Husqvarna mowers ...`);
+
+          populateMowers(
+            $("#node-input-apikey").val(),
+            $("#node-input-clientsecret").val()
+          );
+        }
+      });
+
+      // Re-enable scan button & reset mowers list when id or secret changes
+      $("#node-input-apikey, #node-input-clientsecret").change(
+        () => {
+          $("#node-mower-scan").show();
+          $("#node-input-mower").replaceWith(
+            `<select id="node-input-mower" disabled style="flex-grow: 1"></select>`
+          );
+        }
+      );
+    },
+  });
+</script>

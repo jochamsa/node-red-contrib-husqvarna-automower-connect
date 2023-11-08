@@ -1,0 +1,171 @@
+[
+  {
+      "id": "e9024dca7301d58f",
+      "type": "tab",
+      "label": "Automower Connect Demo Flow",
+      "disabled": false,
+      "info": "",
+      "env": []
+  },
+  {
+      "id": "c0b2205dd42453fa",
+      "type": "auto-mower",
+      "z": "e9024dca7301d58f",
+      "name": "AutoMower",
+      "mower": "",
+      "x": 650,
+      "y": 340,
+      "wires": [
+          [
+              "fb2dd5c37d29625c"
+          ]
+      ]
+  },
+  {
+      "id": "8734dd89b2d62b86",
+      "type": "inject",
+      "z": "e9024dca7301d58f",
+      "name": "ParkUntilFurtherNotice",
+      "props": [
+          {
+              "p": "action",
+              "v": "parkUntilFurtherNotice",
+              "vt": "str"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 320,
+      "y": 220,
+      "wires": [
+          [
+              "c0b2205dd42453fa"
+          ]
+      ]
+  },
+  {
+      "id": "fb2dd5c37d29625c",
+      "type": "debug",
+      "z": "e9024dca7301d58f",
+      "name": "MsgOutput",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 930,
+      "y": 340,
+      "wires": []
+  },
+  {
+      "id": "c55d8ba648dd5fe5",
+      "type": "inject",
+      "z": "e9024dca7301d58f",
+      "name": "ParkUntilNextSchedule",
+      "props": [
+          {
+              "p": "action",
+              "v": "parkUntilNextSchedule",
+              "vt": "str"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 320,
+      "y": 280,
+      "wires": [
+          [
+              "c0b2205dd42453fa"
+          ]
+      ]
+  },
+  {
+      "id": "d05124151b97a1b6",
+      "type": "inject",
+      "z": "e9024dca7301d58f",
+      "name": "ParkForDurationOfTime - 10min",
+      "props": [
+          {
+              "p": "action",
+              "v": "parkForDurationOfTime",
+              "vt": "str"
+          },
+          {
+              "p": "duration",
+              "v": "10",
+              "vt": "str"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 290,
+      "y": 340,
+      "wires": [
+          [
+              "c0b2205dd42453fa"
+          ]
+      ]
+  },
+  {
+      "id": "b63626e53b943ffa",
+      "type": "inject",
+      "z": "e9024dca7301d58f",
+      "name": "ResumeSchedule",
+      "props": [
+          {
+              "p": "action",
+              "v": "resumeSchedule",
+              "vt": "str"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 330,
+      "y": 400,
+      "wires": [
+          [
+              "c0b2205dd42453fa"
+          ]
+      ]
+  },
+  {
+      "id": "fc25aaf60a08f324",
+      "type": "inject",
+      "z": "e9024dca7301d58f",
+      "name": "StartMowing",
+      "props": [
+          {
+              "p": "action",
+              "v": "startMowing",
+              "vt": "str"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 350,
+      "y": 460,
+      "wires": [
+          [
+              "c0b2205dd42453fa"
+          ]
+      ]
+  }
+]
