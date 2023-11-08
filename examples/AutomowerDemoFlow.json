@@ -153,6 +153,11 @@
                 "p": "action",
                 "v": "startMowing",
                 "vt": "str"
+            },
+            {
+                "p": "duration",
+                "v": "10",
+                "vt": "str"
             }
         ],
         "repeat": "",
