@@ -23,7 +23,7 @@ Tested on a Husqvarna Automower® 315X.
 
 ### 3. Configure the mower & config node
 1. Drag a 'Husqvarna Mower' node on your flow
-2. Enter the previously acquired API Key & Client Secret
+2. Enter the previously acquired Application Key & Application Secret
 4. Click the search button to scan for 'mowers'
 5. Select the appropriate mower
 6. Save your node
@@ -56,7 +56,7 @@ You can command the mower by sending a message with:
     - parkForDurationOfTime
     - resumeSchedule
     - startMowing
-- msg.duration: Duration in minutes (only for optional 'startMowing' and required for 'parkForDurationOfTime' action)
+- msg.duration: Duration in minutes (only required for 'startMowing' and 'parkForDurationOfTime' actions)
 
 ## Example flow
 
