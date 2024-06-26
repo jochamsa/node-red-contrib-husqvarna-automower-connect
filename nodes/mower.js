@@ -120,6 +120,7 @@ module.exports = (RED) => {
                   mower: {
                     id: node.autoMower.id,
                     name: node.autoMower.data.system.name,
+                    positions: node.autoMower.data.positions,
                   },
                   payload: {
                     connected: node.autoMower.isConnected,
